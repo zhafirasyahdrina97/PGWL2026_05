@@ -59,4 +59,23 @@ class PolygonsController extends Controller
 
         return redirect()->route('peta')->with('success', 'Polygon added successfully!');
     }
+
+    public function destroy($id)
+    {
+        $polygon = $this->polygons->findOrFail($id);
+
+        // Hapus image jika ada
+        if ($polygon->image) {
+            $imagePath = public_path('storage/images/' . $polygon->image);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
+
+        if (!$polygon->delete()) {
+            return response()->json(['message' => 'Failed to delete polygon!'], 500);
+        }
+
+        return response()->json(['message' => 'Polygon deleted successfully!']);
+    }
 }

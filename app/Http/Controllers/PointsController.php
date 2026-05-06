@@ -60,4 +60,23 @@ class PointsController extends Controller
 
         return redirect()->route('peta')->with('success', 'Point added successfully!');
     }
+
+    public function destroy($id)
+    {
+        $point = $this->points->findOrFail($id);
+
+        // Hapus image jika ada
+        if ($point->image) {
+            $imagePath = public_path('storage/images/' . $point->image);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
+
+        if (!$point->delete()) {
+            return response()->json(['message' => 'Failed to delete point!'], 500);
+        }
+
+        return response()->json(['message' => 'Point deleted successfully!']);
+    }
 }

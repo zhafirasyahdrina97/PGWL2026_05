@@ -56,4 +56,23 @@ class PolylinesController extends Controller
 
         return redirect()->route('peta')->with('success', 'Polyline added successfully!');
     }
+
+    public function destroy($id)
+    {
+        $polyline = $this->polylines->findOrFail($id);
+
+        // Hapus image jika ada
+        if ($polyline->image) {
+            $imagePath = public_path('storage/images/' . $polyline->image);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
+
+        if (!$polyline->delete()) {
+            return response()->json(['message' => 'Failed to delete polyline!'], 500);
+        }
+
+        return response()->json(['message' => 'Polyline deleted successfully!']);
+    }
 }

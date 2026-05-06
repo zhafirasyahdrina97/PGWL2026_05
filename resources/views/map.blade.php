@@ -283,7 +283,7 @@
         });
 
         // ✅ FIX: helper untuk build popup content dengan path image yang benar
-        function buildPopup(feature) {
+        function buildPopup(feature, deleteRoute) {
             var img = feature.properties.image && feature.properties.image !== 'null' && feature.properties.image !== null ?
                 `<img src="{{ asset('storage/images') }}/${feature.properties.image}" class="img-thumbnail" width="300">` :
                 '<em>No Image</em>';
@@ -293,28 +293,61 @@
         <b>Description:</b> ${feature.properties.description}<br>
         <b>Created:</b> ${feature.properties.created_at}<br>
         <b>Image:</b><br>${img}<br>
-        <b>Updated:</b> ${feature.properties.updated_at}
+        <b>Updated:</b> ${feature.properties.updated_at}<br><br>
+        <button
+            class="btn btn-danger btn-sm" title='Delete'
+            onclick="deleteFeature('${deleteRoute}')">
+            🗑️ Delete
+        </button>
     `;
+        }
+
+        // Fungsi delete
+        function deleteFeature(deleteRoute) {
+            if (!confirm('Are you sure want to delete this data?')) return;
+
+            fetch(deleteRoute, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert('Data deleted successfully!');
+                    location.reload();
+                })
+                .catch(err => {
+                    alert('Failed to delete data.');
+                    console.error(err);
+                });
         }
 
         // GeoJSON Point
         var points = L.geoJSON(null, {
             onEachFeature: function(feature, layer) {
-                layer.bindPopup(buildPopup(feature));
+                var routeDelete = "{{ route('points.delete', ':id') }}";
+                routeDelete = routeDelete.replace(':id', feature.properties.id); // ← sudah benar
+                layer.bindPopup(buildPopup(feature, routeDelete)); // ← tambah routeDelete di sini
             }
         });
 
         // GeoJSON Polyline
         var polylines = L.geoJSON(null, {
             onEachFeature: function(feature, layer) {
-                layer.bindPopup(buildPopup(feature));
+                var routeDelete = "{{ route('polylines.delete', ':id') }}";
+                routeDelete = routeDelete.replace(':id', feature.properties.id); // ← sudah benar
+                layer.bindPopup(buildPopup(feature, routeDelete)); // ← tambah routeDelete di sini
             }
         });
 
         // GeoJSON Polygons
         var polygons = L.geoJSON(null, {
             onEachFeature: function(feature, layer) {
-                layer.bindPopup(buildPopup(feature));
+                var routeDelete = "{{ route('polygons.delete', ':id') }}";
+                routeDelete = routeDelete.replace(':id', feature.properties.id); // ← sudah benar
+                layer.bindPopup(buildPopup(feature, routeDelete)); // ← tambah routeDelete di sini
             }
         });
 
