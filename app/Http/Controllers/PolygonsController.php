@@ -60,6 +60,77 @@ class PolygonsController extends Controller
         return redirect()->route('peta')->with('success', 'Polygon added successfully!');
     }
 
+    public function edit($id)
+    {
+        $polygon = $this->polygons->findOrFail($id);
+
+        return view(
+            'map-edit-polygon',
+            compact('polygon')
+        );
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name'        => 'required|string|max:255',
+            'geometry'    => 'required',
+            'description' => 'nullable|string',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $polygon = $this->polygons->findOrFail($id);
+
+        // image lama
+        $name_image = $polygon->image;
+
+        // upload image baru
+        if ($request->hasFile('image')) {
+
+            // hapus image lama
+            if ($polygon->image) {
+
+                $oldImage = public_path(
+                    'storage/images/' . $polygon->image
+                );
+
+                if (file_exists($oldImage)) {
+                    unlink($oldImage);
+                }
+            }
+
+            $image = $request->file('image');
+
+            $name_image =
+                time() . '_polygon.' .
+                $image->getClientOriginalExtension();
+
+            $image->move(
+                public_path('storage/images'),
+                $name_image
+            );
+        }
+
+        // update data
+        $polygon->update([
+
+            'geom' => DB::raw(
+                "ST_GeomFromText('{$request->geometry}', 4326)"
+            ),
+
+            'name'        => $request->name,
+            'description' => $request->description,
+            'image'       => $name_image,
+        ]);
+
+        return redirect()
+            ->route('peta')
+            ->with(
+                'success',
+                'Polygon updated successfully!'
+            );
+    }
+
     public function destroy($id)
     {
         $polygon = $this->polygons->findOrFail($id);

@@ -2,7 +2,7 @@
     <div class="container-fluid">
 
         <a class="navbar-brand" href="#">
-            🌸 {{ $title }}
+            🌸 {{ $title ?? 'Edit Features' }}
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -27,6 +27,27 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">About</a>
                 </li>
+
+                @guest
+                    <li class="nav-item">
+                        <a class="nav-link btn-login" href="{{ route('login') }}">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login
+                        </a>
+                    </li>
+                @endguest
+
+                @auth
+                    <li class="nav-item">
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="nav-link btn-logout border-0">
+                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                @endauth
+
+
 
             </ul>
         </div>

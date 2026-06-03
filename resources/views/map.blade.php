@@ -6,7 +6,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
     <style>
         body {
-            background: #fff0f6;
+            background:
+                linear-gradient(rgba(255, 240, 246, 0.50),
+                    rgba(255, 227, 241, 0.82)),
+                url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1974&auto=format&fit=crop');
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             font-family: 'Poppins', sans-serif;
         }
 
@@ -48,6 +55,8 @@
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+
+
     </style>
 @endsection
 
@@ -283,9 +292,16 @@
         });
 
         // ✅ FIX: helper untuk build popup content dengan path image yang benar
-        function buildPopup(feature, deleteRoute) {
-            var img = feature.properties.image && feature.properties.image !== 'null' && feature.properties.image !== null ?
-                `<img src="{{ asset('storage/images') }}/${feature.properties.image}" class="img-thumbnail" width="300">` :
+        function buildPopup(feature, deleteRoute, editRoute) {
+
+            var img = feature.properties.image &&
+                feature.properties.image !== 'null' &&
+                feature.properties.image !== null ?
+
+                `<img src="{{ asset('storage/images') }}/${feature.properties.image}"
+            class="img-thumbnail" width="300">`
+
+                :
                 '<em>No Image</em>';
 
             return `
@@ -294,8 +310,15 @@
         <b>Created:</b> ${feature.properties.created_at}<br>
         <b>Image:</b><br>${img}<br>
         <b>Updated:</b> ${feature.properties.updated_at}<br><br>
+
+        <a href="${editRoute}"
+            class="btn btn-warning btn-sm me-2">
+            ✏️ Edit
+            </a>
+
         <button
-            class="btn btn-danger btn-sm" title='Delete'
+            class="btn btn-danger btn-sm"
+            title='Delete'
             onclick="deleteFeature('${deleteRoute}')">
             🗑️ Delete
         </button>
@@ -329,7 +352,10 @@
             onEachFeature: function(feature, layer) {
                 var routeDelete = "{{ route('points.delete', ':id') }}";
                 routeDelete = routeDelete.replace(':id', feature.properties.id); // ← sudah benar
-                layer.bindPopup(buildPopup(feature, routeDelete)); // ← tambah routeDelete di sini
+                var routeEdit = "{{ route('points.edit', ':id') }}";
+                routeEdit = routeEdit.replace(':id', feature.properties.id); // ← sudah benar
+                layer.bindPopup(buildPopup(feature, routeDelete,
+                routeEdit)); // ← tambah routeDelete dan routeEdit di sini
             }
         });
 
@@ -338,7 +364,10 @@
             onEachFeature: function(feature, layer) {
                 var routeDelete = "{{ route('polylines.delete', ':id') }}";
                 routeDelete = routeDelete.replace(':id', feature.properties.id); // ← sudah benar
-                layer.bindPopup(buildPopup(feature, routeDelete)); // ← tambah routeDelete di sini
+                var routeEdit = "{{ route('polylines.edit', ':id') }}";
+                routeEdit = routeEdit.replace(':id', feature.properties.id);
+                layer.bindPopup(buildPopup(feature, routeDelete,
+                routeEdit)); // ← tambah routeDelete dan routeEdit di sini
             }
         });
 
@@ -347,7 +376,10 @@
             onEachFeature: function(feature, layer) {
                 var routeDelete = "{{ route('polygons.delete', ':id') }}";
                 routeDelete = routeDelete.replace(':id', feature.properties.id); // ← sudah benar
-                layer.bindPopup(buildPopup(feature, routeDelete)); // ← tambah routeDelete di sini
+                var routeEdit = "{{ route('polygons.edit', ':id') }}";
+                routeEdit = routeEdit.replace(':id', feature.properties.id);
+                layer.bindPopup(buildPopup(feature, routeDelete,
+                routeEdit)); // ← tambah routeDelete dan routeEdit di sini
             }
         });
 

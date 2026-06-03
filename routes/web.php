@@ -11,14 +11,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+route::get('/', [PageController::class, 'landingpage'])->name('home');
+
+Route::get('/peta', [PageController::class, 'map'])
+    ->middleware(['auth', 'verified'])
+    ->name('peta');
+
+route::get('/table', [PageController::class, 'Table'])->name('table');
 
 // ✅ FIX: tambahkan ->name('geojson.points') yang sebelumnya tidak ada
 Route::get('/geojson/points', function () {
     $points = DB::table('points')
-        ->selectRaw("ST_AsGeoJSON(geom) as geometry, name, description, image, created_at, updated_at")
+        ->selectRaw("
+        id,
+        ST_AsGeoJSON(geom) as geometry,
+        name,
+        description,
+        image,
+        created_at,
+        updated_at
+    ")
         ->get();
 
     return response()->json([
@@ -28,6 +40,7 @@ Route::get('/geojson/points', function () {
                 'type'       => 'Feature',
                 'geometry'   => json_decode($p->geometry),
                 'properties' => [
+                    'id'          => $p->id,
                     'name'        => $p->name,
                     'description' => $p->description,
                     'image'       => $p->image,
@@ -40,9 +53,16 @@ Route::get('/geojson/points', function () {
 })->name('geojson.points'); // ← INI YANG HILANG
 
 Route::get('/geojson/polylines', function () {
-    // ✅ FIX: pakai DB::table + ST_AsGeoJSON agar geometry terbaca (sama seperti points)
     $polylines = DB::table('polylines')
-        ->selectRaw("ST_AsGeoJSON(geom) as geometry, name, description, image, created_at, updated_at")
+        ->selectRaw("
+        id,
+        ST_AsGeoJSON(geom) as geometry,
+        name,
+        description,
+        image,
+        created_at,
+        updated_at
+    ")
         ->get();
 
     return response()->json([
@@ -52,6 +72,7 @@ Route::get('/geojson/polylines', function () {
                 'type'       => 'Feature',
                 'geometry'   => json_decode($p->geometry),
                 'properties' => [
+                    'id'          => $p->id,
                     'name'        => $p->name,
                     'description' => $p->description,
                     'image'       => $p->image,
@@ -61,12 +82,20 @@ Route::get('/geojson/polylines', function () {
             ];
         })
     ]);
-})->name('geojson.polylines');
+})->name('geojson.polylines'); // ← INI YANG HILANG
 
 Route::get('/geojson/polygons', function () {
-    // ✅ FIX: pakai DB::table + ST_AsGeoJSON agar geometry terbaca (sama seperti points)
+
     $polygons = DB::table('polygons')
-        ->selectRaw("ST_AsGeoJSON(geom) as geometry, name, description, image, created_at, updated_at")
+        ->selectRaw("
+            id,
+            ST_AsGeoJSON(geom) as geometry,
+            name,
+            description,
+            image,
+            created_at,
+            updated_at
+        ")
         ->get();
 
     return response()->json([
@@ -76,6 +105,7 @@ Route::get('/geojson/polygons', function () {
                 'type'       => 'Feature',
                 'geometry'   => json_decode($p->geometry),
                 'properties' => [
+                    'id'          => $p->id,
                     'name'        => $p->name,
                     'description' => $p->description,
                     'image'       => $p->image,
@@ -97,17 +127,53 @@ Route::post('/store-points', [PointsController::class, 'store'])
 Route::delete('/delete-points/{id}', [PointsController::class, 'destroy'])
     ->name('points.delete');
 
+Route::get(
+    '/points/{id}/edit',
+    [PointsController::class, 'edit']
+)
+    ->name('points.edit');
+
+Route::patch(
+    '/points/{id}',
+    [PointsController::class, 'update']
+)
+    ->name('points.update');
+
 Route::post('/store-polylines', [PolylinesController::class, 'store'])
     ->name('polylines.store');
 
 Route::delete('/delete-polylines/{id}', [PolylinesController::class, 'destroy'])
     ->name('polylines.delete');
 
+Route::get(
+    '/polylines/{id}/edit',
+    [PolylinesController::class, 'edit']
+)
+    ->name('polylines.edit');
+
+Route::patch(
+    '/polylines/{id}',
+    [PolylinesController::class, 'update']
+)
+    ->name('polylines.update');
+
 Route::post('/store-polygons', [PolygonsController::class, 'store'])
     ->name('polygons.store');
 
 Route::delete('/delete-polygons/{id}', [PolygonsController::class, 'destroy'])
     ->name('polygons.delete');
+
+Route::get(
+    '/polygons/{id}/edit',
+    [PolygonsController::class, 'edit']
+)
+    ->name('polygons.edit');
+
+Route::patch(
+    '/polygons/{id}',
+    [PolygonsController::class, 'update']
+)
+    ->name('polygons.update');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

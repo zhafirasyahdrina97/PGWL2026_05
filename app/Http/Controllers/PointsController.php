@@ -61,6 +61,66 @@ class PointsController extends Controller
         return redirect()->route('peta')->with('success', 'Point added successfully!');
     }
 
+    public function edit($id)
+    {
+        $point = $this->points->findOrFail($id);
+
+        return view('map-edit-point', compact('point'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name'        => 'required|string|max:255',
+            'geometry'    => 'required',
+            'description' => 'nullable|string',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $point = $this->points->findOrFail($id);
+
+        // image lama
+        $name_image = $point->image;
+
+        // upload image baru
+        if ($request->hasFile('image')) {
+
+            // hapus image lama
+            if ($point->image) {
+                $oldImage = public_path('storage/images/' . $point->image);
+
+                if (file_exists($oldImage)) {
+                    unlink($oldImage);
+                }
+            }
+
+            $image = $request->file('image');
+
+            $name_image = time() . '_point.' .
+                $image->getClientOriginalExtension();
+
+            $image->move(
+                public_path('storage/images'),
+                $name_image
+            );
+        }
+
+        // update data
+        $point->update([
+            'geom' => DB::raw(
+                "ST_GeomFromText('{$request->geometry}', 4326)"
+            ),
+
+            'name'        => $request->name,
+            'description' => $request->description,
+            'image'       => $name_image,
+        ]);
+
+        return redirect()
+            ->route('peta')
+            ->with('success', 'Point updated successfully!');
+    }
+
     public function destroy($id)
     {
         $point = $this->points->findOrFail($id);
